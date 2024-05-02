@@ -46,6 +46,10 @@ CL = sum((np.sin((i+1) * theta)) * ans[i] * mynum for i in range(N))
 CL1 = np.append(0, CL)
 y_s = np.append(b / 2, z)
 
+# Calculate and print the overall CL of the wing
+CL_wing = math.pi * AR * ans[0]
+print(f"Overall CL of the wing: {CL_wing:.2f}")
+
 # Plotting
 plt.plot(y_s, CL1, marker="o")
 plt.title("Lifting Line Theory\nElliptical Lift Distribution")
@@ -54,6 +58,4 @@ plt.ylabel("Lift coefficient")
 plt.grid()
 plt.show()
 
-# Calculate and print the overall CL of the wing
-CL_wing = math.pi * AR * ans[0]
-print(f"Overall CL of the wing: {CL_wing:.2f}")
+

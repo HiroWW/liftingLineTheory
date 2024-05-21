@@ -1,26 +1,59 @@
 import numpy as np
 import math
 import matplotlib.pylab as plt
+import os
+import argparse
+
+# parse arguments
+parser = argparse.ArgumentParser(description='Lifting Line Theory')
+parser.add_argument('--out', type=str, required=True, help='output directory')
+# optional argument for switching to different mode
+parser.add_argument('--taper', action='store_true', help='use it if you want to calculate tapered wing.')
+parser.add_argument('--ellipse', action='store_true', help='use it if you want to calculate ellipse wing.')
+args = parser.parse_args()
 
 # Configuration parameters
 N = 50  # 分割数
 S = 5.00  # 翼面積 (m^2)
 AR = 5.0  # アスペクト比
-taper = 1.0  # テーパー比
 alpha_twist = 0.0  # ツイスト角 (degrees)
 i_w = 10.0  # 翼の取り付け角 (degrees)
 a_2d = 2 * math.pi  # 二次元の揚力曲線の傾き (1/rad)
 alpha_0 = 0.0  # ゼロ揚力迎角 (degrees)
 
-# Calculated values
-b = math.sqrt(AR * S)  # 翼幅 (m)
-MAC = S / b  # 平均空力翼弦 (m)
-Croot = (1.5 * (1 + taper) * MAC) / (1 + taper + taper ** 2)  # 翼根のコード長 (m)
-theta = np.linspace(math.pi / (2 * N), math.pi / 2, N, endpoint=True)  # 翼のセグメントの中心角
-alpha = np.linspace(i_w + alpha_twist, i_w, N)  # 各セグメントの迎角
-z = (b / 2) * np.cos(theta)  # 翼の半径方向の位置
-c = Croot * (1 - (1 - taper) * np.cos(theta))  # 翼弦長の分布
-mu = c * a_2d / (4 * b)  # 揚力線の無次元パラメータ
+# Configuration parameters for tapered wing
+if args.taper:
+    taper = 1.0  # テーパー比
+    b = math.sqrt(AR * S)  # 翼幅 (m)
+    MAC = S / b  # 平均空力翼弦 (m)
+    Croot = (1.5 * (1 + taper) * MAC) / (1 + taper + taper ** 2)  # 翼根のコード長 (m)
+    theta = np.linspace(math.pi / (2 * N), math.pi / 2, N, endpoint=True)  # 翼のセグメントの中心角
+    alpha = np.linspace(i_w + alpha_twist, i_w, N)  # 各セグメントの迎角
+    z = (b / 2) * np.cos(theta)  # 翼のスパン方向位置
+    c = Croot * (1 - (1 - taper) * np.cos(theta))  # 翼弦長の分布
+    mu = c * a_2d / (4 * b)  # 揚力線の無次元パラメータ
+# Configuration parameters for ellipse wing
+if args.ellipse:
+    b = math.sqrt(AR * S)  # 翼幅 (m)
+    MAC = S / b  # 平均空力翼弦 (m)
+    Croot = 2  # 翼根のコード長 (m)
+    theta = np.linspace(math.pi / (2 * N), math.pi / 2, N, endpoint=True)  # 翼のセグメントの中心角
+    alpha = np.linspace(i_w + alpha_twist, i_w, N)  # 各セグメントの迎角
+    z = (b / 2) * np.cos(theta)  # 翼のスパン方向位置
+    c = Croot * np.sin(theta)  # 翼弦長の分布
+    mu = c * a_2d / (4 * b)  # 揚力線の無次元パラメータ
+
+# other way to define the wing
+# c = f(z)
+# just define the function f(z) and use it to calculate c
+
+# plot c - z and show it by useing matplotlig
+plt.plot(z, c)
+plt.title("Chord Distribution")
+plt.xlabel("Span location (m)")
+plt.ylabel("Chord length (m)")
+plt.grid()
+plt.show()
 
 # Compute LHS vector
 LHS = mu * (alpha - alpha_0) / 57.3
